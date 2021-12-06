@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import rebound
 import math
+import argparse
 from tqdm.auto import tqdm as tqdm_auto
 from os.path import exists
 
@@ -79,80 +80,92 @@ def body_slice(data, name_dict, short_name):
 def au_to_km(au):
     return 149597871 * au
 
-#############################
-### SET UP THE SIMULATION ###
-#############################
-# get today's date
-TODAY = dt.date.today()
-TODAY_STR = TODAY.strftime("%Y-%m-%d 00:00")
-TODAY_MJD = date_to_mjd(*[int(n) for n in TODAY_STR.split(" ")[0].split("-")])
-# define simulation objects
-body_names = ["Sun", "Earth", "Mars Barycenter"]
-horizon_names = body_names
-body_ids = [10, 399, 400]
-body_id_strs = [str(id) for id in body_ids]
-short_names = [name.split()[0] for name in body_names]
-name_to_idx = {k: v for v, k in enumerate(short_names)}
-# try to load in existing simulation
-if exists(f"planets_{int(TODAY_MJD)}.bin"):
-    sim = rebound.Simulation(f"planets_{int(TODAY_MJD)}.bin")
-else:
-    # create empty simulation
-    sim = rebound.Simulation()
-    # set preferred units
-    sim.units = ("day", "AU", "Msun")
-    # add Sun, Earth, and Mars to simulation at today's date
-    for name in horizon_names:
-        sim.add(name, date=TODAY_STR)
-    sim.t = TODAY_MJD
-    sim.dt = 1. / 16.
-    sim.save(filename=f"planets_{int(TODAY_MJD)}.bin")
+def main(n_years):
+    #############################
+    ### SET UP THE SIMULATION ###
+    #############################
+    # get today's date
+    TODAY = dt.date.today()
+    TODAY_STR = TODAY.strftime("%Y-%m-%d 00:00")
+    TODAY_MJD = date_to_mjd(*[int(n) for n in TODAY_STR.split(" ")[0].split("-")])
+    # define simulation objects
+    body_names = ["Sun", "Earth", "Mars Barycenter"]
+    horizon_names = body_names
+    body_ids = [10, 399, 400]
+    body_id_strs = [str(id) for id in body_ids]
+    short_names = [name.split()[0] for name in body_names]
+    name_to_idx = {k: v for v, k in enumerate(short_names)}
+    # try to load in existing simulation
+    if exists(f"planets_{int(TODAY_MJD)}.bin"):
+        sim = rebound.Simulation(f"planets_{int(TODAY_MJD)}.bin")
+    else:
+        # create empty simulation
+        sim = rebound.Simulation()
+        # set preferred units
+        sim.units = ("day", "AU", "Msun")
+        # add Sun, Earth, and Mars to simulation at today's date
+        for name in horizon_names:
+            sim.add(name, date=TODAY_STR)
+        sim.t = TODAY_MJD
+        sim.dt = 1. / 16.
+        sim.save(filename=f"planets_{int(TODAY_MJD)}.bin")
 
-#############################
-### SIMULATE 10 YEARS     ###
-#############################
-# set number of years
-n_years = 10
-# set number of days (integer)
-M = np.round(n_years * 365.25).astype(np.int32) + 1
-# number of particles in simulation
-N = np.int32(sim.N)
-# allocate position and velocity arrays
-q = np.zeros((M, 3 * N), dtype=np.float64)
-v = np.zeros((M, 3 * N), dtype=np.float64)
-# create array of times
-ts = np.arange(TODAY_MJD, TODAY_MJD + M)
-# integrate simulation and save state vectors
-idx = tqdm_auto(list(enumerate(ts)))
-for i, t in idx:
-    # integreate to current time step
-    sim.integrate(t, exact_finish_time = 1)
-    # save position
-    sim.serialize_particle_data(xyz = q[i])
-    # save velocity
-    sim.serialize_particle_data(vxvyvz = v[i])
+    #############################
+    ### SIMULATE              ###
+    #############################
+    # set number of days (integer)
+    M = np.round(n_years * 365.25).astype(np.int32) + 1
+    # number of particles in simulation
+    N = np.int32(sim.N)
+    # allocate position and velocity arrays
+    q = np.zeros((M, 3 * N), dtype=np.float64)
+    v = np.zeros((M, 3 * N), dtype=np.float64)
+    # create array of times
+    ts = np.arange(TODAY_MJD, TODAY_MJD + M)
+    # integrate simulation and save state vectors
+    idx = tqdm_auto(list(enumerate(ts)))
+    for i, t in idx:
+        # integreate to current time step
+        sim.integrate(t, exact_finish_time = 1)
+        # save position
+        sim.serialize_particle_data(xyz = q[i])
+        # save velocity
+        sim.serialize_particle_data(vxvyvz = v[i])
 
-#############################
-### VISUALIZE RESULTS     ###
-#############################
-# unpack position of Earth and Mars
-q_earth = body_slice(q, name_to_idx, "Earth")
-q_mars = body_slice(q, name_to_idx, "Mars")
-# distance from Earth to Mars
-r_mars = np.linalg.norm(q_mars - q_earth, axis = 1)
-# set number of xticks
-n_xticks = 20
-xticks = [int(x) for x in np.linspace(ts[0], ts[-1], num = n_xticks)]
-xtick_labs = [d.split(".")[0] for d in ["-".join([str(a) for a in mjd_to_date(x)]) for x in xticks]]
-# plot distance from Earth to Mars
-plt.figure(figsize = (16, 10))
-plt.plot(ts, r_mars)
-ax = plt.gca()
-ax.set_xticks(xticks)
-ax.set_xticklabels(xtick_labs, rotation = 90)
-plt.xlabel("Date", fontsize = 18)
-plt.ylabel("Distance (AU)", fontsize = 18)
-plt.title("Distance between Earth and Mars", fontsize = 24)
-plt.grid()
-plt.tight_layout()
-plt.savefig("distance_earth_mars.png")
+    #############################
+    ### VISUALIZE RESULTS     ###
+    #############################
+    # unpack position of Earth and Mars
+    q_earth = body_slice(q, name_to_idx, "Earth")
+    q_mars = body_slice(q, name_to_idx, "Mars")
+    # distance from Earth to Mars
+    r_mars = np.linalg.norm(q_mars - q_earth, axis = 1)
+    # find minimum distance and date
+    min_idx = np.argmin(r_mars)
+    min_dist = r_mars[min_idx]
+    min_mjd = ts[min_idx]
+    min_date = "-".join([str(a) for a in mjd_to_date(min_mjd)]).split(".")[0]
+    # set number of xticks
+    n_xticks = 20
+    xticks = [int(x) for x in np.linspace(ts[0], ts[-1], num = n_xticks)]
+    xtick_labs = [d.split(".")[0] for d in ["-".join([str(a) for a in mjd_to_date(x)]) for x in xticks]]
+    # plot distance from Earth to Mars
+    plt.figure(figsize = (14, 9))
+    plt.plot(ts, r_mars)
+    plt.plot(min_mjd, min_dist, "o", color = "red", label = f"Optimal date:\n{min_date}")
+    ax = plt.gca()
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xtick_labs, rotation = 90)
+    plt.xlabel("Date", fontsize = 16)
+    plt.ylabel("Distance (AU)", fontsize = 16)
+    plt.title(f"Distance between Earth and Mars over the next {n_years} years", fontsize = 20)
+    plt.legend(fontsize = 12)
+    plt.grid()
+    plt.tight_layout()
+    plt.savefig(f"earth_to_mars_{n_years}years.png")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description = "Simulate the distance between Earth and Mars over given number of years")
+    parser.add_argument("-y", metavar = "--years", type = int, nargs = 1, help = "number of years to simulate, default is 10", default = [10])
+    args = parser.parse_args()
+    main(args.y[0])
