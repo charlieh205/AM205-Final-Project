@@ -22,60 +22,60 @@ mars = {
 init = [sun,earth,mars]
 
 G = 6.67408e-20
-n = len(init)
+num_bodies = len(init)
 
 def x_accel(s,i,j):
     m2 = init[j]['m']
     x1 = s[i]
-    y1 = s[i+n]
-    z1 = s[i+n+1]
+    y1 = s[i+num_bodies]
+    z1 = s[i+num_bodies*2]
     x2 = s[j]
-    y2 = s[j+n]
-    z2 = s[j+n+1]
+    y2 = s[j+num_bodies]
+    z2 = s[j+num_bodies*2]
     return m2*(x2-x1)/((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)**(3/2)
 
 def y_accel(s,i,j):
     m2 = init[j]['m']
     x1 = s[i]
-    y1 = s[i+n]
-    z1 = s[i+n+1]
+    y1 = s[i+num_bodies]
+    z1 = s[i+num_bodies*2]
     x2 = s[j]
-    y2 = s[j+n]
-    z2 = s[j+n+1]
+    y2 = s[j+num_bodies]
+    z2 = s[j+num_bodies*2]
     return m2*(y2-y1)/((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)**(3/2)
 
 
 def z_accel(s,i,j):
     m2 = init[j]['m']
     x1 = s[i]
-    y1 = s[i+n]
-    z1 = s[i+n+1]
+    y1 = s[i+num_bodies]
+    z1 = s[i+num_bodies*2]
     x2 = s[j]
-    y2 = s[j+n]
-    z2 = s[j+n+1]
+    y2 = s[j+num_bodies]
+    z2 = s[j+num_bodies*2]
     return m2*(z2-z1)/((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)**(3/2)
 
 def xpp(s,i):
-    other_indices = list(range(n))
+    other_indices = list(range(num_bodies))
     other_indices.remove(i)
     return G*sum([x_accel(s,i,j) for j in other_indices])
 
 def ypp(s,i):
-    other_indices = list(range(n))
+    other_indices = list(range(num_bodies))
     other_indices.remove(i)
     return G*sum([y_accel(s,i,j) for j in other_indices])
 
 def zpp(s,i):
-    other_indices = list(range(n))
+    other_indices = list(range(num_bodies))
     other_indices.remove(i)
     return G*sum([z_accel(s,i,j) for j in other_indices])
 
 def F(s,t):
     return np.concatenate(
-        (s[2*n:3*n],s[3*n:4*n],s[4*n:5*n],
-         [xpp(s,i) for i in range(n)],
-         [ypp(s,i) for i in range(n)],
-         [zpp(s,i) for i in range(n)]))
+        (s[3*num_bodies:4*num_bodies],s[4*num_bodies:5*num_bodies],s[5*num_bodies:6*num_bodies],
+         [xpp(s,i) for i in range(num_bodies)],
+         [ypp(s,i) for i in range(num_bodies)],
+         [zpp(s,i) for i in range(num_bodies)]))
 
 x0 = [o['p'][0] for o in init]
 y0 = [o['p'][1] for o in init]
@@ -84,17 +84,15 @@ vx0 = [o['v'][0] for o in init]
 vy0 = [o['v'][1] for o in init]
 vz0 = [o['v'][2] for o in init]
 s0 = np.concatenate((x0,y0,z0,vx0,vy0,vz0))
-print(s0)
-print("____________")
 
-t = np.linspace(0,3600*24*365,1000)
+t = np.linspace(0,3600*24*365*2,1000)
 solution = odeint(F,s0,t)
 
 def pic(k=0):
-    for i in range(n):
-        plt.plot(solution[:,i], solution[:,n+i], 'gray', linewidth=0.5)
-    for i in range(n):
-        plt.plot(solution[k,i], solution[k,n+i], 'ko')
+    for i in range(num_bodies):
+        plt.plot(solution[:,i], solution[:,num_bodies+i], 'gray', linewidth=0.5)
+    for i in range(num_bodies):
+        plt.plot(solution[k,i], solution[k,num_bodies+i], 'ko')
     ax = plt.gca()
     ax.set_aspect(1)
     plt.axis('off');
@@ -104,10 +102,13 @@ ax = plt.axes(projection='3d')
 while True:
     for k in range(1000):
         plt.cla()
-        for i in range(n):
-            ax.plot3D(solution[:, i], solution[:, n + i], np.zeros(len(solution[:, i])), 'red', linewidth=0.5)
-        for i in range(n):
-            ax.scatter3D(solution[k, i], solution[k, n + i], np.zeros(len(solution[:, i])), 'ko', alpha=.5)
+        for i in range(num_bodies):
+            ax.plot3D(solution[0:k,i], solution[0:k,num_bodies+i], solution[0:k,num_bodies+i+1], 'red', linewidth=0.5)
+        for i in range(num_bodies):
+            ax.scatter3D(solution[k, i], solution[k, num_bodies + i], solution[k, num_bodies + i + 1], 'ko', alpha=.5)
+        ax.set_xlim3d(-3e8, 3e8)
+        ax.set_ylim3d(-3e8, 3e8)
+        ax.set_zlim3d(-3e8, 3e8)
         fig.canvas.draw()
-        plt.pause(.01)
-
+        plt.pause(.001)
+#
