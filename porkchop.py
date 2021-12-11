@@ -101,7 +101,7 @@ targetting_vec = np.vectorize(
 )
 
 
-class PorkchopPlotter:
+class PorkchopPlotter(object):
 
     """
     Class Implementation for Porkchop Plot
@@ -151,7 +151,7 @@ class PorkchopPlotter:
         self.max_c3 = max_c3
         self.max_vhp = max_vhp
 
-    def porkchop(self):
+    def porkchop(self, filename):
         """Plots porkchop between two bodies.
 
         Returns
@@ -266,7 +266,7 @@ class PorkchopPlotter:
 
         self.ax.set_xlabel("Launch date", fontsize=10, fontweight="bold")
         self.ax.set_ylabel("Arrival date", fontsize=10, fontweight="bold")
-        plt.savefig("test.png")
+        plt.savefig(f"{filename}.png")
 
         return (
             dv_launch * u.km / u.s,
