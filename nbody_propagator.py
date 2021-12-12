@@ -1,7 +1,8 @@
 import math
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
-
+from matplotlib.animation import FuncAnimation, PillowWriter
+import numpy as np
 
 
 class point:
@@ -75,6 +76,44 @@ def run_simulation(bodies, names=None, time_step=1, number_of_steps=10000, repor
 
     return body_locations_hist
 
+
+def animate_outcome(pos, colors, sizes):
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+
+    fig.set_facecolor("black")
+    ax.set_facecolor("black")
+    ax.grid(False)
+    ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+
+    N = len(pos)
+
+
+    def update(i):
+        ax.clear()
+        ax.set_facecolor("black")
+        ax.grid(False)
+        ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+        ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+        ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+
+        ax.set_ylim(-246360812.31482115, 6e8)
+        ax.set_xlim(-190289032.31830737, 227205650.0355562)
+        ax.set_zlim(-7199082.133277591, 4000949.6426398293)
+
+
+        for p in range(N):
+            x = pos[p]['x']
+            y = pos[p]['y']
+            z = pos[p]['z']
+            ax.plot(x[:i], y[:i], z[:i], color="white", ls="--")
+            ax.scatter(x[i], y[i], z[i], color=colors[p], s=sizes[p])
+
+    anim = FuncAnimation(fig, update, frames= len(pos[0]['x']))
+    return anim
+
 sun = {
     "mass": 1.9884754159566474e+30,
     "location": point(130.12022433639504, 493.88921553478576, 1.9894885155190423),
@@ -100,17 +139,7 @@ if __name__ == "__main__":
         body(location=mars["location"], mass=mars["mass"], velocity=mars["velocity"], name="mars"),
     ]
 
-    motions = run_simulation(bodies, time_step=100, number_of_steps=80000, report_freq=1000)
-    fig = plt.figure(figsize=(6, 6))
-    ax = plt.axes(projection='3d')
-    while True:
-        for k in range(len(motions[0]['x'])):
-            plt.cla()
-            for current_body in motions:
-                ax.plot3D(current_body['x'][:k+1], current_body['y'][:k+1], current_body['z'][:k+1], 'red', linewidth=0.5)
-                ax.scatter3D(current_body['x'][k], current_body['y'][k], current_body['z'][k], linewidth=0.5,  alpha=.5)
-            ax.set_xlim3d(-3e8, 3e8)
-            ax.set_ylim3d(-3e8, 3e8)
-            ax.set_zlim3d(-3e7, 3e7)
-            fig.canvas.draw()
-            plt.pause(.01)
+    pos = run_simulation(bodies, time_step=100, number_of_steps=80000, report_freq=1000)
+    anim = animate_outcome(pos, ["yellow", "blue" , "red"], [30,20,15])
+    anim.save("nbody.gif", writer="imagemagick", fps=2)
+

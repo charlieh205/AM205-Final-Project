@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.integrate import odeint
 from mpl_toolkits import mplot3d
+from matplotlib.animation import FuncAnimation
 
 softening_param = 0
 #km, kg, s
