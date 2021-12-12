@@ -1,8 +1,7 @@
 import math
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 
-import random
-import matplotlib.pyplot as plot
-from mpl_toolkits.mplot3d import Axes3D
 
 
 class point:
@@ -59,29 +58,6 @@ def compute_gravity_step(bodies, time_step=1):
     update_location(bodies, time_step=time_step)
 
 
-def plot_output(bodies, outfile=None):
-    fig = plot.figure()
-    colours = ['r', 'b', 'g', 'y', 'm', 'c']
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
-    max_range = 0
-    for current_body in bodies:
-        max_dim = max(max(current_body["x"]), max(current_body["y"]), max(current_body["z"]))
-        if max_dim > max_range:
-            max_range = max_dim
-        ax.plot(current_body["x"], current_body["y"], current_body["z"], c=random.choice(colours),
-                label=current_body["name"])
-
-    ax.set_xlim([-max_range, max_range])
-    ax.set_ylim([-max_range, max_range])
-    ax.set_zlim([-max_range, max_range])
-    ax.legend()
-
-    if outfile:
-        plot.savefig(outfile)
-    else:
-        plot.show()
-
-
 def run_simulation(bodies, names=None, time_step=1, number_of_steps=10000, report_freq=100):
     # create output container for each body
     body_locations_hist = []
@@ -125,4 +101,16 @@ if __name__ == "__main__":
     ]
 
     motions = run_simulation(bodies, time_step=100, number_of_steps=80000, report_freq=1000)
-    plot_output(motions, outfile='orbits.png')
+    fig = plt.figure(figsize=(6, 6))
+    ax = plt.axes(projection='3d')
+    while True:
+        for k in range(len(motions[0]['x'])):
+            plt.cla()
+            for current_body in motions:
+                ax.plot3D(current_body['x'][:k+1], current_body['y'][:k+1], current_body['z'][:k+1], 'red', linewidth=0.5)
+                ax.scatter3D(current_body['x'][k], current_body['y'][k], current_body['z'][k], linewidth=0.5,  alpha=.5)
+            ax.set_xlim3d(-3e8, 3e8)
+            ax.set_ylim3d(-3e8, 3e8)
+            ax.set_zlim3d(-3e7, 3e7)
+            fig.canvas.draw()
+            plt.pause(.01)
