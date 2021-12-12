@@ -123,7 +123,6 @@ def animate_outcome(pos, colors, sizes):
     ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
     ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
 
-    N = len(pos)
 
 
     def update(i):
@@ -134,15 +133,16 @@ def animate_outcome(pos, colors, sizes):
         ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
         ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
 
-        ax.set_xlim(-3e8, 3e8)
-        ax.set_ylim(-3e8, 3e8)
-        ax.set_zlim(-3e8, 3e8)
+        ax.set_ylim(-246360812.31482115, 6e8)
+        ax.set_xlim(-190289032.31830737, 227205650.0355562)
+        ax.set_zlim(-7199082.133277591, 4000949.6426398293)
 
 
-        for p in range(N):
-            ax.plot3D(solution[0:i, p], solution[0:i, num_bodies + p], solution[0:i, num_bodies + 2*p], color="white", ls="--")
-            ax.scatter3D(solution[i, p], solution[i, num_bodies + p] ,solution[i, num_bodies  + 2*p], color=colors[p], s=sizes[p])
-
+        for p in range(num_bodies):
+            ax.plot3D(pos[0:i, p] - pos[0:i, 0], pos[0:i, num_bodies + p] - pos[0:i, num_bodies],
+                      pos[0:i, num_bodies * 2 + p] - pos[0:i, num_bodies * 2], color="white", ls="--")
+            ax.scatter3D(pos[i, p] - pos[i, 0], pos[i, num_bodies + p] - pos[i, num_bodies],
+                         pos[i, num_bodies * 2 + p] - pos[i, num_bodies * 2], color=colors[p], s=sizes[p])
     anim = FuncAnimation(fig, update, frames= 1000)
     return anim
 
@@ -155,8 +155,8 @@ if __name__ == "__main__":
     vz0 = [o['v'][2] for o in init]
     s0 = np.concatenate((x0,y0,z0,vx0,vy0,vz0))
 
-    t = np.linspace(0,3600*24*365*2,1000)
+    t = np.linspace(0,3600*24*365*2,79)
     solution = odeint(F,s0,t)
-    plot_3d()
-    # anim = animate_outcome(solution, ["yellow", "blue" , "red"], [30,20,15])
-    # plt.show()
+    anim = animate_outcome(solution, ["yellow", "blue" , "red"], [30,20,15])
+    plt.show()
+    #anim.save("nbody-odeint.gif", writer="imagemagick", fps=2)
