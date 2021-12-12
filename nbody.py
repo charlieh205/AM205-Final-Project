@@ -3,6 +3,8 @@ import numpy as np
 from scipy.integrate import odeint
 from mpl_toolkits import mplot3d
 
+softening_param = 0
+#km, kg, s
 sun = {
     "m": 1.9884754159566474e+30,
     "p": (130.12022433639504, 493.88921553478576, 1.9894885155190423),
@@ -19,7 +21,8 @@ mars = {
     "p": (91724696.20692892, -189839018.6923888, -6228099.232650615),
     "v": (22.733051422552098, 12.621328917003236, -0.29323856116219776)
 }
-init = [sun,mars]
+
+init = [sun,earth,mars]
 
 G = 6.67408e-20
 num_bodies = len(init)
@@ -32,7 +35,7 @@ def x_accel(s,i,j):
     x2 = s[j]
     y2 = s[j+num_bodies]
     z2 = s[j+num_bodies*2]
-    r = np.linalg.norm(np.array([x2, y2, z2]) - np.array([x1, y1, z1]))
+    r = np.linalg.norm(np.array([x2, y2, z2]) - np.array([x1, y1, z1])) + softening_param**2
     return m2*(x2-x1)/(r)**(3)
 
 def y_accel(s,i,j):
@@ -43,7 +46,7 @@ def y_accel(s,i,j):
     x2 = s[j]
     y2 = s[j+num_bodies]
     z2 = s[j+num_bodies*2]
-    r = np.linalg.norm(np.array([x2, y2, z2]) - np.array([x1, y1, z1]))
+    r = np.linalg.norm(np.array([x2, y2, z2]) - np.array([x1, y1, z1])) + softening_param**2
     return m2*(y2-y1)/(r)**(3)
 
 
@@ -55,7 +58,7 @@ def z_accel(s,i,j):
     x2 = s[j]
     y2 = s[j+num_bodies]
     z2 = s[j+num_bodies*2]
-    r = np.linalg.norm(np.array([x2, y2, z2]) - np.array([x1, y1, z1]))
+    r = np.linalg.norm(np.array([x2, y2, z2]) - np.array([x1, y1, z1])) + softening_param**2
     return m2*(z2-z1)/(r)**(3)
 
 def xpp(s,i):
@@ -94,7 +97,7 @@ def plot_3d():
             ax.set_ylim3d(-3e8, 3e8)
             ax.set_zlim3d(-3e8, 3e8)
             fig.canvas.draw()
-            plt.pause(.001)
+            plt.pause(.0001)
 
 def plot_2d():
     fig = plt.figure(figsize=(6, 6))
@@ -108,7 +111,7 @@ def plot_2d():
             plt.xlim([-3e8, 3e8])
             plt.ylim([-3e8, 3e8])
             fig.canvas.draw()
-            plt.pause(.001)
+            plt.pause(.0001)
 
 if __name__ == "__main__":
     x0 = [o['p'][0] for o in init]
