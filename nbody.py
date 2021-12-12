@@ -91,9 +91,8 @@ def plot_3d():
         for k in range(1000):
             plt.cla()
             for i in range(num_bodies):
-                ax.plot3D(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], solution[0:k,num_bodies+i+1]- solution[0:k,num_bodies+1], 'red', linewidth=0.5)
-            for i in range(num_bodies):
-                ax.scatter3D(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], solution[k, num_bodies + i + 1] -  solution[k, num_bodies + 1], 'ko', alpha=.5)
+                ax.plot3D(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], solution[0:k,num_bodies*2 + i]- solution[0:k,num_bodies*2], 'red', linewidth=0.5)
+                ax.scatter3D(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], solution[k, num_bodies*2 + i ] -  solution[k, num_bodies*2], 'ko', alpha=.5)
             ax.set_xlim3d(-3e8, 3e8)
             ax.set_ylim3d(-3e8, 3e8)
             ax.set_zlim3d(-3e8, 3e8)
@@ -107,12 +106,45 @@ def plot_2d():
             plt.cla()
             for i in range(num_bodies):
                 plt.plot(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], 'red', linewidth=0.5)
-            for i in range(num_bodies):
-                plt.scatter(solution[k, i] -solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], alpha=.5)
+                plt.scatter(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], alpha=.5)
             plt.xlim([-3e8, 3e8])
             plt.ylim([-3e8, 3e8])
             fig.canvas.draw()
             plt.pause(.0001)
+
+def animate_outcome(pos, colors, sizes):
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+
+    fig.set_facecolor("black")
+    ax.set_facecolor("black")
+    ax.grid(False)
+    ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+
+    N = len(pos)
+
+
+    def update(i):
+        ax.clear()
+        ax.set_facecolor("black")
+        ax.grid(False)
+        ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+        ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+        ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+
+        ax.set_xlim(-3e8, 3e8)
+        ax.set_ylim(-3e8, 3e8)
+        ax.set_zlim(-3e8, 3e8)
+
+
+        for p in range(N):
+            ax.plot3D(solution[0:i, p], solution[0:i, num_bodies + p], solution[0:i, num_bodies + 2*p], color="white", ls="--")
+            ax.scatter3D(solution[i, p], solution[i, num_bodies + p] ,solution[i, num_bodies  + 2*p], color=colors[p], s=sizes[p])
+
+    anim = FuncAnimation(fig, update, frames= 1000)
+    return anim
 
 if __name__ == "__main__":
     x0 = [o['p'][0] for o in init]
@@ -125,5 +157,6 @@ if __name__ == "__main__":
 
     t = np.linspace(0,3600*24*365*2,1000)
     solution = odeint(F,s0,t)
-
     plot_3d()
+    # anim = animate_outcome(solution, ["yellow", "blue" , "red"], [30,20,15])
+    # plt.show()
