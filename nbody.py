@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.integrate import odeint
 from mpl_toolkits import mplot3d
+from matplotlib.animation import FuncAnimation
 
 softening_param = 0
 #km, kg, s
@@ -90,9 +91,8 @@ def plot_3d():
         for k in range(1000):
             plt.cla()
             for i in range(num_bodies):
-                ax.plot3D(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], solution[0:k,num_bodies+i+1]- solution[0:k,num_bodies+1], 'red', linewidth=0.5)
-            for i in range(num_bodies):
-                ax.scatter3D(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], solution[k, num_bodies + i + 1] -  solution[k, num_bodies + 1], 'ko', alpha=.5)
+                ax.plot3D(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], solution[0:k,num_bodies*2 + i]- solution[0:k,num_bodies*2], 'red', linewidth=0.5)
+                ax.scatter3D(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], solution[k, num_bodies*2 + i ] -  solution[k, num_bodies*2], 'ko', alpha=.5)
             ax.set_xlim3d(-3e8, 3e8)
             ax.set_ylim3d(-3e8, 3e8)
             ax.set_zlim3d(-3e8, 3e8)
@@ -106,12 +106,45 @@ def plot_2d():
             plt.cla()
             for i in range(num_bodies):
                 plt.plot(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], 'red', linewidth=0.5)
-            for i in range(num_bodies):
-                plt.scatter(solution[k, i] -solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], alpha=.5)
+                plt.scatter(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], alpha=.5)
             plt.xlim([-3e8, 3e8])
             plt.ylim([-3e8, 3e8])
             fig.canvas.draw()
             plt.pause(.0001)
+
+def animate_outcome(pos, colors, sizes):
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+
+    fig.set_facecolor("black")
+    ax.set_facecolor("black")
+    ax.grid(False)
+    ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+
+
+
+    def update(i):
+        ax.clear()
+        ax.set_facecolor("black")
+        ax.grid(False)
+        ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+        ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+        ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+
+        ax.set_ylim(-246360812.31482115, 6e8)
+        ax.set_xlim(-190289032.31830737, 227205650.0355562)
+        ax.set_zlim(-7199082.133277591, 4000949.6426398293)
+
+
+        for p in range(num_bodies):
+            ax.plot3D(pos[0:i, p] - pos[0:i, 0], pos[0:i, num_bodies + p] - pos[0:i, num_bodies],
+                      pos[0:i, num_bodies * 2 + p] - pos[0:i, num_bodies * 2], color="white", ls="--")
+            ax.scatter3D(pos[i, p] - pos[i, 0], pos[i, num_bodies + p] - pos[i, num_bodies],
+                         pos[i, num_bodies * 2 + p] - pos[i, num_bodies * 2], color=colors[p], s=sizes[p])
+    anim = FuncAnimation(fig, update, frames= 1000)
+    return anim
 
 if __name__ == "__main__":
     x0 = [o['p'][0] for o in init]
@@ -122,7 +155,8 @@ if __name__ == "__main__":
     vz0 = [o['v'][2] for o in init]
     s0 = np.concatenate((x0,y0,z0,vx0,vy0,vz0))
 
-    t = np.linspace(0,3600*24*365*2,1000)
+    t = np.linspace(0,3600*24*365*2,79)
     solution = odeint(F,s0,t)
-
-    plot_3d()
+    anim = animate_outcome(solution, ["yellow", "blue" , "red"], [30,20,15])
+    plt.show()
+    #anim.save("nbody-odeint.gif", writer="imagemagick", fps=2)
