@@ -1,11 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import datetime as dt
 import rebound
 import math
-import argparse
 from tqdm.auto import tqdm as tqdm_auto
-from os.path import exists
 
 
 #############################
@@ -80,14 +77,12 @@ def body_slice(data, name_dict, short_name):
 def au_to_km(au):
     return 149597871 * au
 
-def main(n_years):
+def main(start_date, n_years):
     #############################
     ### SET UP THE SIMULATION ###
     #############################
-    # get today's date
-    TODAY = dt.date.today()
-    TODAY_STR = TODAY.strftime("%Y-%m-%d 00:00")
-    TODAY_MJD = date_to_mjd(*[int(n) for n in TODAY_STR.split(" ")[0].split("-")])
+    # get start date
+    start_mjd = date_to_mjd(*[int(n) for n in start_date.split(" ")[0].split("-")])
     # define simulation objects
     body_names = ["Sun", "Earth", "Mars Barycenter"]
     horizon_names = body_names
@@ -95,20 +90,15 @@ def main(n_years):
     body_id_strs = [str(id) for id in body_ids]
     short_names = [name.split()[0] for name in body_names]
     name_to_idx = {k: v for v, k in enumerate(short_names)}
-    # try to load in existing simulation
-    if exists(f"planets_{int(TODAY_MJD)}.bin"):
-        sim = rebound.Simulation(f"planets_{int(TODAY_MJD)}.bin")
-    else:
-        # create empty simulation
-        sim = rebound.Simulation()
-        # set preferred units
-        sim.units = ("day", "AU", "Msun")
-        # add Sun, Earth, and Mars to simulation at today's date
-        for name in horizon_names:
-            sim.add(name, date=TODAY_STR)
-        sim.t = TODAY_MJD
-        sim.dt = 1. / 16.
-        sim.save(filename=f"planets_{int(TODAY_MJD)}.bin")
+    # create empty simulation
+    sim = rebound.Simulation()
+    # set preferred units
+    sim.units = ("day", "AU", "Msun")
+    # add Sun, Earth, and Mars to simulation at start date
+    for name in horizon_names:
+        sim.add(name, date=start_date)
+    sim.t = start_mjd
+    sim.dt = 1. / 16.
 
     #############################
     ### SIMULATE              ###
@@ -121,7 +111,7 @@ def main(n_years):
     q = np.zeros((M, 3 * N), dtype=np.float64)
     v = np.zeros((M, 3 * N), dtype=np.float64)
     # create array of times
-    ts = np.arange(TODAY_MJD, TODAY_MJD + M)
+    ts = np.arange(start_mjd, start_mjd + M)
     # integrate simulation and save state vectors
     idx = tqdm_auto(list(enumerate(ts)))
     for i, t in idx:
@@ -152,7 +142,7 @@ def main(n_years):
     # plot distance from Earth to Mars
     plt.figure(figsize = (14, 9))
     plt.plot(ts, r_mars)
-    plt.plot(min_mjd, min_dist, "o", color = "red", label = f"Optimal date:\n{min_date}")
+    plt.plot(min_mjd, min_dist, "o", color = "red", label = f"Date of shortest distance:\n{min_date}")
     ax = plt.gca()
     ax.set_xticks(xticks)
     ax.set_xticklabels(xtick_labs, rotation = 90)
@@ -162,10 +152,10 @@ def main(n_years):
     plt.legend(fontsize = 12)
     plt.grid()
     plt.tight_layout()
-    plt.savefig(f"earth_to_mars_{n_years}years.png")
+    plt.savefig(f"{start_date.split(' ')[0]}_{n_years}years.png")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description = "Simulate the distance between Earth and Mars over given number of years")
-    parser.add_argument("-y", metavar = "--years", type = int, nargs = 1, help = "number of years to simulate, default is 10", default = [10])
-    args = parser.parse_args()
-    main(args.y[0])
+    start_date = input("Enter start date ('YYYY-MM-DD'): ")
+    start_date += " 00:00"
+    n_years = int(input("Enter number of years (integer): "))
+    main(start_date, n_years)
