@@ -6,9 +6,6 @@ importlib.reload(nb)
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
-sim_duration = 2 * 365
-times = np.arange(0, sim_duration)
-
 def rebound_sim():
   sim = rebound.Simulation()
   sim.units = ("AU", "kg", "day")
@@ -49,20 +46,23 @@ def plot_error(i, title, solution, pos, t):
     plt.xlabel("Days")
 
 if __name__ == "__main__":
-  init, pos, G = rebound_sim()
-  num_bodies = len(init)
+    sim_duration = 2 * 365
+    times = np.arange(0, sim_duration)
 
-  x0 = [o['p'][0] for o in init]
-  y0 = [o['p'][1] for o in init]
-  z0 = [o['p'][2] for o in init]
-  vx0 = [o['v'][0] for o in init]
-  vy0 = [o['v'][1] for o in init]
-  vz0 = [o['v'][2] for o in init]
-  s0 = np.concatenate((x0, y0, z0, vx0, vy0, vz0))
+    init, pos, G = rebound_sim()
+    num_bodies = len(init)
+
+    x0 = [o['p'][0] for o in init]
+    y0 = [o['p'][1] for o in init]
+    z0 = [o['p'][2] for o in init]
+    vx0 = [o['v'][0] for o in init]
+    vy0 = [o['v'][1] for o in init]
+    vz0 = [o['v'][2] for o in init]
+    s0 = np.concatenate((x0, y0, z0, vx0, vy0, vz0))
 
 
-  solution = odeint(nb.F, s0, times, args=(G,))
+    solution = odeint(nb.F, s0, times, args=(G,))
 
 
-  plot_error(1, "earth.png", solution, pos, times)
-  plot_error(2, "mars.png", solution, pos, times)
+    plot_error(1, "earth.png", solution, pos, times)
+    plot_error(2, "mars.png", solution, pos, times)
