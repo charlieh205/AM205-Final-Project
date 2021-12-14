@@ -84,20 +84,25 @@ def F(s,t):
          [ypp(s,i) for i in range(num_bodies)],
          [zpp(s,i) for i in range(num_bodies)]))
 
-def plot_3d():
-    fig = plt.figure(figsize=(6, 6))
+def plot_3d(solution, k):
+    fig = plt.figure(figsize=(8, 8))
     ax = plt.axes(projection='3d')
-    while True:
-        for k in range(1000):
-            plt.cla()
-            for i in range(num_bodies):
-                ax.plot3D(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], solution[0:k,num_bodies*2 + i]- solution[0:k,num_bodies*2], 'red', linewidth=0.5)
-                ax.scatter3D(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], solution[k, num_bodies*2 + i ] -  solution[k, num_bodies*2], 'ko', alpha=.5)
-            ax.set_xlim3d(-3e8, 3e8)
-            ax.set_ylim3d(-3e8, 3e8)
-            ax.set_zlim3d(-3e8, 3e8)
-            fig.canvas.draw()
-            plt.pause(.0001)
+    ax.grid(False)
+    ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+    colors = ["yellow", "blue" , "red"]
+    planets = ["Sun", "Earth", "Mars"]
+    size = [60,40,30]
+    for i in range(num_bodies):
+        ax.plot3D(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], solution[0:k,num_bodies*2 + i]- solution[0:k,num_bodies*2], "black" , lw=".5")
+        ax.scatter3D(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], solution[k, num_bodies*2 + i ] -  solution[k, num_bodies*2], c=colors[i], s=size[i], label=planets[i])
+    ax.set_xlim3d(-2e8, 2e8)
+    ax.set_ylim3d(-2e8, 2e8)
+    ax.set_zlim3d(-2e8, 2e8)
+    plt.legend(loc="best")
+    plt.axis('off')
+    plt.savefig("odeint.png", bbox_inches='tight')
 
 def plot_2d():
     fig = plt.figure(figsize=(6, 6))
@@ -105,7 +110,7 @@ def plot_2d():
         for k in range(1000):
             plt.cla()
             for i in range(num_bodies):
-                plt.plot(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], 'red', linewidth=0.5)
+                plt.plot(solution[0:k,i]- solution[0:k,0], solution[0:k,num_bodies+i] - solution[0:k,num_bodies], color="black", ls="--")
                 plt.scatter(solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], alpha=.5)
             plt.xlim([-3e8, 3e8])
             plt.ylim([-3e8, 3e8])
@@ -145,6 +150,18 @@ def animate_outcome(pos, colors, sizes):
                          pos[i, num_bodies * 2 + p] - pos[i, num_bodies * 2], color=colors[p], s=sizes[p])
     anim = FuncAnimation(fig, update, frames= 1000)
     return anim
+
+def plot_error(i, title, solution, pos,t):
+    fig = plt.figure(figsize=(8, 6))
+    errors = []
+    num_bodies = 3
+    for k in range(730):
+        day_sol = np.array([solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], solution[k, num_bodies*2 + i ] -  solution[k, num_bodies*2]])
+        errors.append(np.linalg.norm(pos[i,k] - day_sol))
+    plt.plot(t, errors)
+    plt.title(title)
+    plt.ylabel("Absolute Error AU")
+    plt.xlabel("Days")
 
 if __name__ == "__main__":
     x0 = [o['p'][0] for o in init]
