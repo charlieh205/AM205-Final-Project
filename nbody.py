@@ -151,17 +151,6 @@ def animate_outcome(pos, colors, sizes):
     anim = FuncAnimation(fig, update, frames= 1000)
     return anim
 
-def plot_error(i, title, solution, pos,t):
-    fig = plt.figure(figsize=(8, 6))
-    errors = []
-    num_bodies = 3
-    for k in range(730):
-        day_sol = np.array([solution[k, i] - solution[k, 0], solution[k, num_bodies + i]- solution[k, num_bodies], solution[k, num_bodies*2 + i ] -  solution[k, num_bodies*2]])
-        errors.append(np.linalg.norm(pos[i,k] - day_sol))
-    plt.plot(t, errors)
-    plt.title(title)
-    plt.ylabel("Absolute Error AU")
-    plt.xlabel("Days")
 
 if __name__ == "__main__":
     x0 = [o['p'][0] for o in init]
