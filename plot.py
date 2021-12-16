@@ -1,5 +1,5 @@
 
-import numpy as np
+import autograd.numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 
@@ -68,6 +68,7 @@ def plot_trajectories(pos, colors, sizes, alphas=None):
     fig, ax = init_axes()
 
     bound_max = 1.25 * max(np.max(np.abs(pos[:, :, 0])), np.max(np.abs(pos[:, :, 1])))
+    ax.set_aspect("equal")
     ax.set_xlim((-bound_max, bound_max))
     ax.set_ylim((-bound_max, bound_max))
 

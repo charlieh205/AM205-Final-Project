@@ -2,7 +2,7 @@ import rebound
 from dataclasses import dataclass
 from collections import deque
 from tempfile import NamedTemporaryFile
-import numpy as np
+import autograd.numpy as np
 
 def copy_sim(sim):
     with NamedTemporaryFile() as f:
