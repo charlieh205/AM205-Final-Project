@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 
 import numpy as np
@@ -28,35 +27,44 @@ mars = {
 init = [sun, earth, mars]
 G = 6.67408e-20
 
+
 def get_n_bodies(s):
     return s.shape[-1] // 7
 
+
 def get_m(s, i):
     return s[i]
+
 
 def get_x(s, i):
     num_bodies = get_n_bodies(s)
     return s[num_bodies + i]
 
+
 def get_y(s, i):
     num_bodies = get_n_bodies(s)
     return s[2 * num_bodies + i]
+
 
 def get_z(s, i):
     num_bodies = get_n_bodies(s)
     return s[3 * num_bodies + i]
 
+
 def get_vx(s, i):
     num_bodies = get_n_bodies(s)
     return s[4 * num_bodies + i]
+
 
 def get_vy(s, i):
     num_bodies = get_n_bodies(s)
     return s[5 * num_bodies + i]
 
+
 def get_vz(s, i):
     num_bodies = get_n_bodies(s)
     return s[6 * num_bodies + i]
+
 
 def get_position(s, i):
 
@@ -66,11 +74,13 @@ def get_position(s, i):
 
     return np.array([x, y, z])
 
+
 def get_r(s, i, j):
     p1 = get_position(s, i)
     p2 = get_position(s, j)
     r = np.linalg.norm(p2 - p1)
     return r
+
 
 def x_accel(s, i, j):
     x1 = get_x(s, i)
@@ -99,28 +109,28 @@ def z_accel(s, i, j):
     return m2 * (z2 - z1) / (r) ** (3)
 
 
-def xpp(s, i):
+def xpp(s, i, G=G):
     num_bodies = get_n_bodies(s)
     other_indices = list(range(num_bodies))
     other_indices.remove(i)
     return G * sum([x_accel(s, i, j) for j in other_indices])
 
 
-def ypp(s, i):
+def ypp(s, i, G=G):
     num_bodies = get_n_bodies(s)
     other_indices = list(range(num_bodies))
     other_indices.remove(i)
     return G * sum([y_accel(s, i, j) for j in other_indices])
 
 
-def zpp(s, i):
+def zpp(s, i, G=G):
     num_bodies = get_n_bodies(s)
     other_indices = list(range(num_bodies))
     other_indices.remove(i)
     return G * sum([z_accel(s, i, j) for j in other_indices])
 
 
-def F(s, t):
+def F(s, t, G=G):
     num_bodies = get_n_bodies(s)
     return np.concatenate(
         (
@@ -128,9 +138,9 @@ def F(s, t):
             s[4 * num_bodies : 5 * num_bodies],
             s[5 * num_bodies : 6 * num_bodies],
             s[6 * num_bodies : 7 * num_bodies],
-            [xpp(s, i) for i in range(num_bodies)],
-            [ypp(s, i) for i in range(num_bodies)],
-            [zpp(s, i) for i in range(num_bodies)],
+            [xpp(s, i, G=G) for i in range(num_bodies)],
+            [ypp(s, i, G=G) for i in range(num_bodies)],
+            [zpp(s, i, G=G) for i in range(num_bodies)],
         )
     )
 
@@ -150,6 +160,7 @@ def to_positions(solution):
     ]
     return np.stack(outcome)
 
+
 def planet_dict_to_vector(init):
     m = [o["m"] for o in init]
     x0 = [o["p"][0] for o in init]
@@ -161,32 +172,32 @@ def planet_dict_to_vector(init):
 
     return np.concatenate((m, x0, y0, z0, vx0, vy0, vz0))
 
+
 def vector_to_planet_dict(vec):
     num_bodies = get_n_bodies(vec)
-    
+
     planets = []
     for i in range(num_bodies):
         planets.append(
-                dict(
-                    m=get_m(vec, i),
-                    p=(get_x(vec, i), get_y(vec, i), get_z(vec, i)),
-                    v=(get_vx(vec, i), get_vy(vec, i), get_vz(vec, i)),
-                )
+            dict(
+                m=get_m(vec, i),
+                p=(get_x(vec, i), get_y(vec, i), get_z(vec, i)),
+                v=(get_vx(vec, i), get_vy(vec, i), get_vz(vec, i)),
+            )
         )
 
     return planets
 
-def integrate(init, t_max, N):
+
+def integrate(init, t_max, N, G=G):
     t = np.linspace(0, t_max, N)
     s0 = planet_dict_to_vector(init)
-    solution = odeint(F, s0, t)
+    solution = odeint(lambda s, t: F(s, t, G=G), s0, t)
     final = vector_to_planet_dict(solution[-1])
     return final, to_positions(solution)
 
+
 if __name__ == "__main__":
-    t = np.linspace(0, 3600 * 24 * 365 * 2, 79)
-    outcome, pos = integrate(init, t)
-    anim = animate_outcome3d(
-        pos, ["yellow", "blue", "red"], [30, 20, 15]
-    )
+    outcome, pos = integrate(init, 3600 * 24 * 365 * 2, 100)
+    anim = animate_outcome3d(pos, ["yellow", "blue", "red"], [30, 20, 15])
     plt.show()
