@@ -1,4 +1,4 @@
-from porkchop import PorkchopPlotter
+from poliastro_porkchop import PorkchopPlotter
 from poliastro.bodies import Earth, Mars
 from poliastro.util import time_range
 
