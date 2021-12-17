@@ -1,5 +1,5 @@
 from poliastro_porkchop import PorkchopPlotter
-from our_porkchop import porkchop_plotter
+from our_porkchop import Porkchop
 from poliastro.bodies import Earth, Mars
 from poliastro.util import time_range
 from datetime import datetime
@@ -13,9 +13,10 @@ def poliastro(launch_span, arrival_span):
     print(best_arrival)
 
 def ours(launch_span, arrival_span):
-    launch_span = [datetime.strptime(str(d).split(" ")[0], "%Y-%m-%d") for d in launch_span]
-    arrival_span = [datetime.strptime(str(d).split(" ")[0], "%Y-%m-%d") for d in arrival_span]
-    porkchop_plotter(launch_span, arrival_span)
+    pork = Porkchop(launch_span, arrival_span)
+    best_launch, best_arrival = pork.plotter("rovers", 1, True)
+    print(best_launch)
+    print(best_arrival)
 
 
 if __name__ == "__main__":
