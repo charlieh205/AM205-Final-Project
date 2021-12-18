@@ -45,6 +45,7 @@ planets = [
     smaller_orbit,
 ]
 
+T = 2 * np.pi * np.sqrt(2.0**3)
 t_h, delta_v1, delta_v2 = hohman(1.0, 1.0, 2.0)
 
 outcome, p1 = integrate(planets, 2 * np.pi, 100)
@@ -53,8 +54,8 @@ outcome[2]['v'] = (0.0, outcome[2]['v'][1] + delta_v1, 0.0)
 outcome, p2 = integrate(outcome, t_h, 100)
 
 outcome[2]['v'] = (0.0, outcome[2]['v'][1] - delta_v2, 0.0)
-outcome, p3 = integrate(outcome, np.pi, 100)
+outcome, p3 = integrate(outcome, T - (t_h + 2 * np.pi), 100)
 
 pos = np.concatenate([p1, p2, p3], axis=1)
-anim = animate_outcome2d(pos, ["yellow", "green", "red"], [100, 30, 30], skip=5)
-plt.show()
+plot_trajectories(pos, ["yellow", "green", "red"], [100, 30, 30])
+plt.savefig("hohmann.png")
