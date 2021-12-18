@@ -7,10 +7,15 @@ import argparse
 
 
 def poliastro(launch_span, arrival_span):
-    porkchop_plot = PorkchopPlotter(Earth, Mars, launch_span, arrival_span, tfl=False, vhp=False)
-    _, _, c3_launch, _, _, best_launch, best_arrival = porkchop_plot.porkchop("rovers", 1, True)
+    porkchop_plot = PorkchopPlotter(
+        Earth, Mars, launch_span, arrival_span, tfl=False, vhp=False
+    )
+    _, _, c3_launch, _, _, best_launch, best_arrival = porkchop_plot.porkchop(
+        "rovers", 1, True
+    )
     print(best_launch)
     print(best_arrival)
+
 
 def ours(launch_span, arrival_span):
     pork = Porkchop(launch_span, arrival_span)
@@ -21,8 +26,16 @@ def ours(launch_span, arrival_span):
 
 if __name__ == "__main__":
     choices = {"poliastro": poliastro, "ours": ours}
-    parser = argparse.ArgumentParser(description="Use either Poliastro or our implementation to make a porkchop plot")
-    parser.add_argument("-c", metavar="CHOCIE", choices=choices, default="ours", help="Which implementation to use")
+    parser = argparse.ArgumentParser(
+        description="Use either Poliastro or our implementation to make a porkchop plot"
+    )
+    parser.add_argument(
+        "-c",
+        metavar="CHOCIE",
+        choices=choices,
+        default="ours",
+        help="Which implementation to use",
+    )
     args = parser.parse_args()
     f = choices[args.c]
     launch = time_range("2003-03-01", end="2004-03-01")

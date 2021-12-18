@@ -1,4 +1,3 @@
-
 import rebound
 from utils import get_trajectories
 import numpy as np
@@ -8,21 +7,23 @@ from plot import animate_outcome2d, plot_trajectory, init_axes, plot_trajectorie
 from utils import *
 from nbody import integrate, G
 
+
 def hohman(mu, r1, r2):
 
     # Orbit exit delta v
-    delta_v1 = np.sqrt(mu / r1) * ( np.sqrt( ( 2 * r2) / (r1 + r2)) - 1)
+    delta_v1 = np.sqrt(mu / r1) * (np.sqrt((2 * r2) / (r1 + r2)) - 1)
 
     # Orbit re-entry delta v
-    delta_v2 = np.sqrt(mu / r2) * ( 1 - np.sqrt( ( 2 * r1) / (r1 + r2)))
+    delta_v2 = np.sqrt(mu / r2) * (1 - np.sqrt((2 * r1) / (r1 + r2)))
 
     # Time of manuever
-    t_h = np.pi * np.sqrt((r1 + r2)**3 / (8 * mu))
+    t_h = np.pi * np.sqrt((r1 + r2) ** 3 / (8 * mu))
 
     return t_h, delta_v1, delta_v2
 
+
 primary = dict(
-    m=1.0/G,
+    m=1.0 / G,
     p=(0.0, 0.0, 0.0),
     v=(0.0, 0.0, 0.0),
 )
@@ -36,24 +37,24 @@ smaller_orbit = dict(
 larger_orbit = dict(
     m=0.0,
     p=(2.0, 0.0, 0.0),
-    v=(0.0, np.sqrt(1.0/2.0), 0.0),
+    v=(0.0, np.sqrt(1.0 / 2.0), 0.0),
 )
 
 planets = [
     primary,
-    larger_orbit, 
+    larger_orbit,
     smaller_orbit,
 ]
 
-T = 2 * np.pi * np.sqrt(2.0**3)
+T = 2 * np.pi * np.sqrt(2.0 ** 3)
 t_h, delta_v1, delta_v2 = hohman(1.0, 1.0, 2.0)
 
 outcome, p1 = integrate(planets, 2 * np.pi, 100)
 
-outcome[2]['v'] = (0.0, outcome[2]['v'][1] + delta_v1, 0.0)
+outcome[2]["v"] = (0.0, outcome[2]["v"][1] + delta_v1, 0.0)
 outcome, p2 = integrate(outcome, t_h, 100)
 
-outcome[2]['v'] = (0.0, outcome[2]['v'][1] - delta_v2, 0.0)
+outcome[2]["v"] = (0.0, outcome[2]["v"][1] - delta_v2, 0.0)
 outcome, p3 = integrate(outcome, T - (t_h + 2 * np.pi), 100)
 
 pos = np.concatenate([p1, p2, p3], axis=1)

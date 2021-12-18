@@ -145,8 +145,8 @@ class PorkchopPlotter(object):
         self.target_body = target_body
         self.launch_span = launch_span
         self.arrival_span = arrival_span
-        self.launch_dates = [str(x).split(' ')[0] for x in launch_span]
-        self.arrival_dates = [str(x).split(' ')[0] for x in arrival_span]
+        self.launch_dates = [str(x).split(" ")[0] for x in launch_span]
+        self.arrival_dates = [str(x).split(" ")[0] for x in arrival_span]
         self.ax = ax
         self.tfl = tfl
         self.vhp = vhp
@@ -268,7 +268,7 @@ class PorkchopPlotter(object):
 
         self.ax.set_xlabel("Launch date", fontsize=10, fontweight="bold")
         self.ax.set_ylabel("Arrival date", fontsize=10, fontweight="bold")
-        
+
         dv_launch = dv_launch * u.km / u.s
         dv_arrival = dv_arrival * u.km / u.s
         c3_launch = c3_launch * u.km ** 2 / u.s ** 2
@@ -276,12 +276,14 @@ class PorkchopPlotter(object):
         tof = tof * u.d
 
         def ind_to_row_col(ind):
-                row = ind // 50
-                col = ind % 50
-                return row, col
+            row = ind // 50
+            col = ind % 50
+            return row, col
 
         c3_launch_arr = np.array(c3_launch)
-        best = [ind_to_row_col(x) for x in np.argsort(c3_launch_arr.flatten())[:num_best]]
+        best = [
+            ind_to_row_col(x) for x in np.argsort(c3_launch_arr.flatten())[:num_best]
+        ]
         best_launch = [self.launch_dates[p[1]] for p in best]
         best_arrival = [self.arrival_dates[p[0]] for p in best]
 
@@ -293,6 +295,13 @@ class PorkchopPlotter(object):
             self.ax.scatter(best_launch, best_arrival, color="red", label=lab)
             self.ax.legend(loc="best")
 
-
         plt.savefig(f"{filename}.svg", bbox_inches="tight")
-        return dv_launch, dv_arrival, c3_launch, c3_arrival, tof, best_launch, best_arrival
+        return (
+            dv_launch,
+            dv_arrival,
+            c3_launch,
+            c3_arrival,
+            tof,
+            best_launch,
+            best_arrival,
+        )

@@ -51,11 +51,13 @@ def copy_sim(sim):
         new_sim = rebound.Simulation(f.name)
     return new_sim
 
+
 def lambert_manuever(r_i, r_f, tof):
     sols = list(lambert(poliastro.bodies.Sun.k, r_i, r_f, tof))
     launch = sols[0][0]
     reenter = sols[0][1]
     return launch.value, reenter.value
+
 
 def rocket_launch(sim, rocket_id, delay, tof, target_id):
 
@@ -71,14 +73,14 @@ def rocket_launch(sim, rocket_id, delay, tof, target_id):
 
         nonlocal has_launched
         nonlocal delay
-    
+
         sim = reb_sim.contents
         rocket = sim.particles[rocket_id]
 
         if not has_launched and sim.t > delay:
             r_i = Quantity((rocket.x, rocket.y, rocket.z), km)
             r_f = target
-    
+
             launch, _ = lambert_manuever(r_i, r_f, tof_q)
 
             rocket.vx = float(launch[0])
@@ -89,37 +91,39 @@ def rocket_launch(sim, rocket_id, delay, tof, target_id):
 
     return launch_fn
 
+
 def get_trajectories(sim, times):
 
     N = len(times)
     pos = np.zeros((len(sim.particles), N, 3))
-    
+
     for (i, time) in enumerate(times):
-    
+
         sim.integrate(time, exact_finish_time=1)
-    
+
         for j in range(len(sim.particles)):
             p = sim.particles[j]
             pos[j, i, :] = np.array([p.x, p.y, p.z])
 
     return pos
 
+
 def animate_outcome(pos, colors, sizes):
-    
+
     fig = plt.figure()
     ax = plt.axes(projection="3d")
-    
+
     fig.set_facecolor("black")
     ax.set_facecolor("black")
     ax.grid(False)
     ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
     ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
     ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
-    
+
     N = pos.shape[0]
 
     angles = np.linspace(0, 180, pos.shape[1])
-    
+
     def update(i):
         ax.clear()
         ax.view_init(45, -1 * angles[i])
@@ -128,39 +132,40 @@ def animate_outcome(pos, colors, sizes):
         ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
         ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
         ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
-    
+
         ax.set_ylim(-246360812.31482115, 367235137.7813816)
         ax.set_xlim(-190289032.31830737, 227205650.0355562)
         ax.set_zlim(-7199082.133277591, 4000949.6426398293)
-    
+
         x = pos[:, :, 0]
         y = pos[:, :, 1]
         z = pos[:, :, 2]
-    
+
         for p in range(N):
             ax.plot(x[p, :i], y[p, :i], z[p, :i], color="white", ls="--")
             ax.scatter(x[p, i], y[p, i], z[p, i], color=colors[p], s=sizes[p])
-    
+
     anim = FuncAnimation(fig, update, frames=range(0, pos.shape[1], 5))
     return anim
+
 
 if __name__ == "__main__":
     total_time = 365 * day_s
     N = 500
     times = np.linspace(0, total_time, N)
-    
+
     for i in range(30, 300, 10):
         delay = i * day_s
         tof = total_time - delay
         sim = copy_sim(base_sim)
-    
+
         sim.additional_forces = rocket_launch(sim, 3, delay, tof, 2)
         sim.force_is_velocity_dependent = 1
-    
+
         pos = get_trajectories(sim, times)
         if i == 30:
             total = pos
         else:
             total = np.concatenate([total, pos[-1].reshape(1, N, 3)])
-    
+
         np.save("total.npy", total)
