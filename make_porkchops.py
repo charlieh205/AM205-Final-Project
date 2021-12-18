@@ -1,3 +1,6 @@
+"""
+Porkchop Plot creation CLI tool
+"""
 from poliastro_porkchop import PorkchopPlotter
 from our_porkchop import Porkchop
 from poliastro.bodies import Earth, Mars

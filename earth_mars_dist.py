@@ -1,3 +1,7 @@
+"""
+This file contains the code used for our plot showing the distance between
+earth and mars
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 import rebound

@@ -1,3 +1,7 @@
+"""
+This files contains the code we used to benchmark our n-body simulator using
+odeint to REBOUND
+"""
 import rebound
 import numpy as np
 import nbody as nb

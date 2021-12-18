@@ -1,3 +1,7 @@
+"""
+Our Porkchop Plot, uses our lambert solver and integrator
+"""
+
 from earth_to_mars import earth_to_mars
 from astropy import units as u
 from poliastro.util import norm
@@ -17,6 +21,9 @@ class Porkchop(object):
         self.arrival_dates = [str(x).split(" ")[0] for x in arrival_span]
 
     def _get_c3_launch(self):
+        """
+        Computes the C3 Launch energy for every path
+        """
         c3 = 1000 * np.ones((len(self.launch_span), len(self.arrival_span)))
         for i in range(len(self.launch_span)):
             launch = self.launch_span[i].to_datetime()
@@ -35,6 +42,9 @@ class Porkchop(object):
         return c3
 
     def plotter(self, filename, num_best=10, plot_best=False):
+        """
+        Plots the pork chop data
+        """
         c3_launch = self._get_c3_launch()
 
         if self.ax is None:

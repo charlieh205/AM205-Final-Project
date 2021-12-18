@@ -1,3 +1,6 @@
+"""
+Analyzing the performance of different root solvers for our lambert solver
+"""
 import autograd.numpy as np
 
 import tqdm
@@ -6,6 +9,7 @@ import matplotlib.pyplot as plt
 from nbody import integrate, G
 from lambert import *
 
+# Same simple experimental set up
 primary = dict(
     m=1.0 / G,
     p=(0.0, 0.0, 0.0),
@@ -43,6 +47,9 @@ gradient_descent = []
 
 Ts = np.linspace(T / 10, T, 100)
 for t_max in tqdm.tqdm(Ts):
+
+    # Simulate the trajectories for each solver, record the required number of
+    # steps
     _, p = integrate(planets, t_max, 100)
     target = p[2][-1]
 
@@ -86,6 +93,7 @@ for t_max in tqdm.tqdm(Ts):
     )
     gradient_descent.append(n_steps)
 
+# Print data
 names = ["Newton's Method", "Secant Method", "Bisection Method", "Gradient Descent"]
 results = [newton, secant, bisection, gradient_descent]
 for (n, r) in zip(names, results):

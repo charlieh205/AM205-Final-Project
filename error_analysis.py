@@ -1,3 +1,7 @@
+"""
+Analyzing the error of our lambert solver with respect to a few different
+parameters.
+"""
 import autograd.numpy as np
 
 import tqdm
@@ -6,6 +10,7 @@ import matplotlib.pyplot as plt
 from nbody import integrate, G
 from lambert import lambert
 
+# Simple experiemental setup. Two circular orbits around primary
 primary = dict(
     m=1.0 / G,
     p=(0.0, 0.0, 0.0),
@@ -41,23 +46,29 @@ fds = []
 thetas = []
 Ts = np.linspace(T / 10, T, 1000)
 for t_max in tqdm.tqdm(Ts):
+    # Simulate forward in time to get target
     _, p = integrate(planets, t_max, 100)
     target = p[2][-1]
 
+    # Compute the V with our solver
     v, _ = lambert(mu, np.array([r1, 0.0, 0.0]), target, t_max, tol=1e-8)
-
+    # Set the middle planet to have this v
     planets[1]["v"] = (v[0], v[1], v[2])
+    # Simulate forward in time again
     outcome, p1 = integrate(planets, t_max, 100)
-
-    flight_distance = np.linalg.norm(p1[1][0] - target)
+    # Measure our error to the target
     err = np.linalg.norm(p1[1][-1] - target)
+
+    # Compute some launch parameters, total distance, speed and launch angle
+    flight_distance = np.linalg.norm(p1[1][0] - target)
+    mag = np.linalg.norm(v)
+    theta = np.rad2deg(np.arccos(v[0] / mag))
 
     fds.append(flight_distance)
     errs.append(err)
-
-    mag = np.linalg.norm(v)
-    theta = np.rad2deg(np.arccos(v[0] / mag))
     thetas.append(theta)
+
+# Plot error versus our parameters
 
 plt.clf()
 plt.cla()

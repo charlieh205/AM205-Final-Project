@@ -1,3 +1,7 @@
+"""
+Plotting utilities
+"""
+
 import autograd.numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter

@@ -1,3 +1,6 @@
+"""
+Our N-Body simulator, using odeint
+"""
 from dataclasses import dataclass
 
 import numpy as np
@@ -6,6 +9,7 @@ import matplotlib.pyplot as plt
 
 from plot import animate_outcome3d
 
+# Specify the mass, location, and velocity of bodies using a dictionary
 # km, kg, s
 sun = {
     "m": 1.9884754159566474e30,
@@ -17,7 +21,6 @@ earth = {
     "p": (-52532397.16477036, -142290670.7988091, 6714.9380375893525),
     "v": (27.459556210605758, -10.428715463342813, 0.0004283693350210454),
 }
-
 mars = {
     "m": 6.417120534329241e23,
     "p": (91724696.20692892, -189839018.6923888, -6228099.232650615),
@@ -27,6 +30,7 @@ mars = {
 init = [sun, earth, mars]
 G = 6.67408e-20
 
+# State manipulation code, for getting info from our state vector
 
 def get_n_bodies(s):
     return s.shape[-1] // 7
@@ -81,6 +85,7 @@ def get_r(s, i, j):
     r = np.linalg.norm(p2 - p1)
     return r
 
+# Compute the acceleration in different directions
 
 def x_accel(s, i, j):
     x1 = get_x(s, i)
@@ -108,6 +113,7 @@ def z_accel(s, i, j):
     r = get_r(s, i, j)
     return m2 * (z2 - z1) / (r) ** (3)
 
+# Compute the forces in different directions
 
 def xpp(s, i, G=G):
     num_bodies = get_n_bodies(s)
@@ -129,6 +135,7 @@ def zpp(s, i, G=G):
     other_indices.remove(i)
     return G * sum([z_accel(s, i, j) for j in other_indices])
 
+# Our overall function, F
 
 def F(s, t, G=G):
     num_bodies = get_n_bodies(s)
@@ -190,6 +197,11 @@ def vector_to_planet_dict(vec):
 
 
 def integrate(init, t_max, N, G=G):
+    """
+    Our main function, given a dictionary of the planets attributes, simulate
+    forward in time to t_max using N steps. This will then return a dictionary
+    specifing the final locations, and the trajectories as a numpy array.
+    """
     t = np.linspace(0, t_max, N)
     s0 = planet_dict_to_vector(init)
     solution = odeint(lambda s, t: F(s, t, G=G), s0, t)
