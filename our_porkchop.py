@@ -21,20 +21,21 @@ class Porkchop(object):
         self.arrival_dates = [str(x).split(' ')[0] for x in arrival_span]
 
     def _get_c3_launch(self):
-        c3 = np.zeros((len(self.launch_span), len(self.arrival_span)))
+        c3 = 1000 * np.ones((len(self.launch_span), len(self.arrival_span)))
         for i in range(len(self.launch_span)):
             launch = self.launch_span[i].to_datetime()
+            print(f"{i}/{len(self.launch_span)}")
             for j in range(len(self.arrival_span)):
                 arrival = self.arrival_span[j].to_datetime()
-                dv_dpt, _ = earth_to_mars(launch, arrival)
-                dv_dpt *= 1.496e8
-                dv_dpt = dv_dpt * (u.km / u.s)
-                # if i == 0 and j == 0:
-                #     print(f"Launch: {launch}, arrival: {arrival}, dv: {dv_dpt}")
-                dv_dpt = dv_dpt.to(u.m / u.s)
-                dv_dpt = norm(dv_dpt)
-                c3_launch = dv_dpt**2
-                c3[i, j] = c3_launch.to_value(u.km**2 / u.s**2)
+                duration_days = (arrival - launch).days
+                if duration_days > 40 and duration_days < 365:
+                    dv_dpt, _ = earth_to_mars(launch, arrival)
+                    dv_dpt *= 1.496e8
+                    dv_dpt = dv_dpt * (u.km / u.s)
+                    dv_dpt = dv_dpt.to(u.m / u.s)
+                    dv_dpt = norm(dv_dpt)
+                    c3_launch = dv_dpt**2
+                    c3[i, j] = c3_launch.to_value(u.km**2 / u.s**2)
         return c3
 
     def plotter(self, filename, num_best=10, plot_best=False):
@@ -76,21 +77,17 @@ class Porkchop(object):
 
         c3_launch = c3_launch * u.km**2 / u.s**2
 
-        def ind_to_row_col(ind):
-            row = ind // len(self.launch_span)
-            col = ind % len(self.launch_span)
-            return row, col
-
         c3_launch_arr = np.array(c3_launch)
-        best = [ind_to_row_col(x) for x in np.argsort(c3_launch_arr.flatten())[:num_best]]
-        best_launch = [self.launch_dates[p[1]] for p in best]
-        best_arrival = [self.arrival_dates[p[0]] for p in best]
+
+        (l, a) = np.unravel_index(np.argmin(c3_launch, axis=None), c3_launch.shape)
+
+        best_launch = self.launch_dates[l]
+        best_arrival = self.arrival_dates[a]
+        print(best_launch)
+        print(best_arrival)
 
         if plot_best:
-            if num_best > 1:
-                lab = f"{num_best} lowest launch energies"
-            else:
-                lab = f"Launch date: {best_launch[0]}\nArrival date: {best_arrival[0]}"
+            lab = f"Launch date: {best_launch}\nArrival date: {best_arrival}"
             self.ax.scatter(best_launch, best_arrival, color="red", label=lab)
             self.ax.legend(loc="best")
         

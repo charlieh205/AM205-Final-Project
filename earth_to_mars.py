@@ -32,7 +32,7 @@ def earth_to_mars(launch_date, land_date, simulate=False):
     )
 
     if not simulate:
-        return v, v_final
+        return v - np.array(init[1]["v"]), v_final
     else:
 
         init.append(
