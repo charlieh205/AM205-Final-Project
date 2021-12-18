@@ -294,5 +294,5 @@ class PorkchopPlotter(object):
             self.ax.legend(loc="best")
 
 
-        plt.savefig(f"{filename}.png")
+        plt.savefig(f"{filename}.svg", bbox_inches="tight")
         return dv_launch, dv_arrival, c3_launch, c3_arrival, tof, best_launch, best_arrival

@@ -1,5 +1,6 @@
 astropy==4.3.1
 astroquery==0.4.4
+autograd==1.3
 beautifulsoup4==4.10.0
 cached-property==1.5.2
 certifi==2021.10.8
@@ -7,7 +8,11 @@ cffi==1.15.0
 charset-normalizer==2.0.9
 cryptography==36.0.0
 cycler==0.11.0
+data==0.4
+decorator==5.1.0
 fonttools==4.28.3
+funcsigs==1.0.2
+future==0.18.2
 html5lib==1.1
 idna==3.3
 importlib-metadata==4.8.2
@@ -15,6 +20,7 @@ jeepney==0.7.1
 jplephem==2.16
 keyring==23.4.0
 kiwisolver==1.3.2
+latex==0.7.0
 llvmlite==0.37.0
 matplotlib==3.5.1
 mimeparse==0.1.3
@@ -35,11 +41,13 @@ rebound==3.18.1
 requests==2.26.0
 scipy==1.7.3
 SecretStorage==3.3.1
+shutilwhich==1.1.0
 six==1.16.0
 soupsieve==2.3.1
+tempdir==0.7.1
 tenacity==8.0.1
 tqdm==4.62.3
-typing_extensions==4.0.1
+typing-extensions==4.0.1
 urllib3==1.26.7
 webencodings==0.5.1
 zipp==3.6.0
